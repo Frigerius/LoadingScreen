@@ -10,89 +10,86 @@
 class FLoadingScreenModule : public ILoadingScreenModule
 {
 public:
-	FLoadingScreenModule();
+    FLoadingScreenModule();
 
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
-	virtual bool IsGameModule() const override
-	{
-		return true;
-	}
+    /** IModuleInterface implementation */
+    virtual void StartupModule() override;
+    virtual void ShutdownModule() override;
+
+    virtual bool IsGameModule() const override
+    {
+        return true;
+    }
 
 private:
-	void HandlePrepareLoadingScreen();
+    void HandlePrepareLoadingScreen() const;
 
-	void BeginLoadingScreen(const FLoadingScreenDescription& ScreenDescription);
+    void BeginLoadingScreen(const FLoadingScreenDescription& ScreenDescription) const;
 };
 
 IMPLEMENT_MODULE(FLoadingScreenModule, LoadingScreen)
 
-FLoadingScreenModule::FLoadingScreenModule()
-{
-
-}
+FLoadingScreenModule::FLoadingScreenModule() {}
 
 void FLoadingScreenModule::StartupModule()
 {
-	if ( !IsRunningDedicatedServer() && FSlateApplication::IsInitialized() )
-	{
-		// Load for cooker reference
-		const ULoadingScreenSettings* Settings = GetDefault<ULoadingScreenSettings>();
-		for ( const FStringAssetReference& Ref : Settings->StartupScreen.Images )
-		{
-			Ref.TryLoad();
-		}
+    if (!IsRunningDedicatedServer() && FSlateApplication::IsInitialized())
+    {
+        // Load for cooker reference
+        const ULoadingScreenSettings* Settings = GetDefault<ULoadingScreenSettings>();
+        for (const FStringAssetReference& Ref : Settings->StartupScreen.Images)
+        {
+            Ref.TryLoad();
+        }
 
-		for ( const FStringAssetReference& Ref : Settings->DefaultScreen.Images )
-		{
-			Ref.TryLoad();
-		}
+        for (const FStringAssetReference& Ref : Settings->DefaultScreen.Images)
+        {
+            Ref.TryLoad();
+        }
 
-		if ( IsMoviePlayerEnabled() )
-		{
-			GetMoviePlayer()->OnPrepareLoadingScreen().AddRaw(this, &FLoadingScreenModule::HandlePrepareLoadingScreen);
-		}
+        if (IsMoviePlayerEnabled())
+        {
+            GetMoviePlayer()->OnPrepareLoadingScreen().AddRaw(this, &FLoadingScreenModule::HandlePrepareLoadingScreen);
+        }
 
-		// Prepare the startup screen, the PrepareLoadingScreen callback won't be called
-		// if we've already explictly setup the loading screen.
-		BeginLoadingScreen(Settings->StartupScreen);
-	}
+        // Prepare the startup screen, the PrepareLoadingScreen callback won't be called
+        // if we've already explictly setup the loading screen.
+        BeginLoadingScreen(Settings->StartupScreen);
+    }
 }
 
 void FLoadingScreenModule::ShutdownModule()
 {
-	if ( !IsRunningDedicatedServer() )
-	{
-		GetMoviePlayer()->OnPrepareLoadingScreen().RemoveAll(this);
-	}
+    if (!IsRunningDedicatedServer())
+    {
+        GetMoviePlayer()->OnPrepareLoadingScreen().RemoveAll(this);
+    }
 }
 
-void FLoadingScreenModule::HandlePrepareLoadingScreen()
+void FLoadingScreenModule::HandlePrepareLoadingScreen() const
 {
-	const ULoadingScreenSettings* Settings = GetDefault<ULoadingScreenSettings>();
-	BeginLoadingScreen(Settings->DefaultScreen);
+    const ULoadingScreenSettings* Settings = GetDefault<ULoadingScreenSettings>();
+    BeginLoadingScreen(Settings->DefaultScreen);
 }
 
-void FLoadingScreenModule::BeginLoadingScreen(const FLoadingScreenDescription& ScreenDescription)
+void FLoadingScreenModule::BeginLoadingScreen(const FLoadingScreenDescription& ScreenDescription) const
 {
-	FLoadingScreenAttributes LoadingScreen;
-	LoadingScreen.MinimumLoadingScreenDisplayTime = ScreenDescription.MinimumLoadingScreenDisplayTime;
-	LoadingScreen.bAutoCompleteWhenLoadingCompletes = ScreenDescription.bAutoCompleteWhenLoadingCompletes;
-	LoadingScreen.bMoviesAreSkippable = ScreenDescription.bMoviesAreSkippable;
-	LoadingScreen.bWaitForManualStop = ScreenDescription.bWaitForManualStop;
-	LoadingScreen.MoviePaths = ScreenDescription.MoviePaths;
-	LoadingScreen.PlaybackType = ScreenDescription.PlaybackType;
+    FLoadingScreenAttributes LoadingScreen;
+    LoadingScreen.MinimumLoadingScreenDisplayTime = ScreenDescription.MinimumLoadingScreenDisplayTime;
+    LoadingScreen.bAutoCompleteWhenLoadingCompletes = ScreenDescription.bAutoCompleteWhenLoadingCompletes;
+    LoadingScreen.bMoviesAreSkippable = ScreenDescription.bMoviesAreSkippable;
+    LoadingScreen.bWaitForManualStop = ScreenDescription.bWaitForManualStop;
+    LoadingScreen.MoviePaths = ScreenDescription.MoviePaths;
+    LoadingScreen.PlaybackType = ScreenDescription.PlaybackType;
     LoadingScreen.bAllowEngineTick = true;
     LoadingScreen.bWaitForStopCall = true;
-	
-	if ( ScreenDescription.bShowUIOverlay )
-	{
-		LoadingScreen.WidgetLoadingScreen = SNew(SSimpleLoadingScreen, ScreenDescription);
-	}
 
-	GetMoviePlayer()->SetupLoadingScreen(LoadingScreen);
+    if (ScreenDescription.bShowUIOverlay)
+    {
+        LoadingScreen.WidgetLoadingScreen = SNew(SSimpleLoadingScreen, ScreenDescription);
+    }
+
+    GetMoviePlayer()->SetupLoadingScreen(LoadingScreen);
 }
-
 
 #undef LOCTEXT_NAMESPACE

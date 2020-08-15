@@ -11,15 +11,15 @@ class SSimpleLoadingScreen : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SSimpleLoadingScreen) {}
+    SLATE_BEGIN_ARGS(SSimpleLoadingScreen) {}
 
-	SLATE_END_ARGS()
+    SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, const FLoadingScreenDescription& ScreenDescription);
+    void Construct(const FArguments& InArgs, const FLoadingScreenDescription& ScreenDescription);
 
 private:
-	float GetDPIScale() const;
-	
+    float GetDPIScale() const;
+
 private:
-	TSharedPtr<FDeferredCleanupSlateBrush> LoadingScreenBrush;
+    TSharedPtr<FDeferredCleanupSlateBrush> LoadingScreenBrush;
 };
